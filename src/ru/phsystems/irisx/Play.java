@@ -17,58 +17,60 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
+import javax.swing.*;
 import java.applet.*;
-import java.awt.*;
 import java.awt.event.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 
-public class Play extends Applet implements ActionListener, Runnable{
+public class Play extends Applet implements ActionListener, Runnable {
 
-    Button play;
     Thread th;
     String url = null;
     boolean playing = false;
+    JButton button;
 
-    public void init(){
+    ImageIcon imgPlay = new ImageIcon();
+    ImageIcon imgStop = new ImageIcon();
+    ImageIcon imgError = new ImageIcon();
 
-        play = new Button("|>");
-        add(play);
-        play.addActionListener(this);
+    public void init()
+    {
+        imgPlay = new ImageIcon(Play.class.getResource("images/play.png"));
+        imgStop = new ImageIcon(Play.class.getResource("images/stop.png"));
+        imgError = new ImageIcon(Play.class.getResource("images/error.png"));
+
+        button = new JButton(imgPlay);
+
+        button.setBorder(BorderFactory.createEmptyBorder());
+        button.setContentAreaFilled(false);
+
+        add(button);
+        button.addActionListener(this);
     }
 
     public void run ()
     {
-        //Just to be nice, lower this thread's priority
-        //so it can't interfere with other processing going on.
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-
-        //Remember the starting time.
-        long startTime = System.currentTimeMillis();
     }
 
     public void actionPerformed(ActionEvent ae){
-        Button source = (Button)ae.getSource();
+        JButton source = (JButton)ae.getSource();
 
-        if (source.getLabel() == "|>"){
+        if (!playing){
 
             url = getParameter("url");
-
-            if(!playing)
-            {
+                button.setIcon(imgStop);
                 playing = true;
-                play.setLabel("[ ]");
                 th = new Thread(new Audio(url));
                 th.start();
-            }
 
         }
-        else if(source.getLabel() == "[ ]"){
+        else if(playing){
 
-            System.out.println("STOP!");
+            button.setIcon(imgPlay);
             th.interrupt();
-            play.setLabel("|>");
             playing = false;
         }
     }
@@ -106,13 +108,8 @@ public class Play extends Applet implements ActionListener, Runnable{
             this.sTmp = new String("GET "+addr+" HTTP/1.0\r\nUser-Agent: user");
             this.sTmp = this.sTmp.concat("\r\n\r\n");
 
-            System.out.println("PLAY! "+this.sTmp);
-
             try
             {
-
-
-
                 Thread.currentThread(); Thread.sleep(100L);
                 this.m_GetSoundString = this.sTmp.getBytes("8859_1");
                 this.m_sktSound = new Socket(getCodeBase().getHost(), getCodeBase().getPort());
@@ -177,8 +174,11 @@ public class Play extends Applet implements ActionListener, Runnable{
                 }
 
             }
+            catch (InterruptedException e) {
+            }
             catch (Exception localException2)
             {
+                button.setIcon(imgError);
                 System.err.println(localException2);
             }
 
@@ -192,8 +192,10 @@ public class Play extends Applet implements ActionListener, Runnable{
                 this.m_soundOutput.close();
                 this.m_sktSound.close();
             }
+
             catch (Exception localException3)
             {
+                button.setIcon(imgError);
                 System.err.println(localException3);
             }
         }
