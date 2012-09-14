@@ -105,8 +105,10 @@ public class Play extends Applet implements ActionListener, Runnable {
 
         public void run()
         {
-            this.sTmp = new String("GET "+addr+" HTTP/1.0\r\nUser-Agent: user");
-            this.sTmp = this.sTmp.concat("\r\n\r\n");
+            String m_sPassword = getParameter("auth");
+            this.sTmp = new String("GET "+addr+" HTTP/1.0\r\nUser-Agent: user\r\nAuthorization: Basic ");
+            this.sTmp = sTmp.concat(m_sPassword);
+            this.sTmp = sTmp.concat("\r\n\r\n");
 
             try
             {
